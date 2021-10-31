@@ -1,0 +1,140 @@
+input_boolean:
+  haunted_mansion:
+    name: Maison Hantée
+    icon: mdi:halloween
+
+automation:
+  # Turn on Haunted Mansion Show when input_boolean is flipped on
+  - id: haunted_mansion_on
+    alias: Haunted Mansion On
+    mode: single
+    initial_state: true
+    trigger:
+    - platform: state
+      entity_id: input_boolean.haunted_mansion
+      to: 'on'
+    action:
+    - service: script.turn_on
+      entity_id: script.haunted_mansion_lights
+    - service: script.turn_on
+      entity_id: script.haunted_mansion_thunder
+    # - service: script.turn_on
+      # entity_id: script.haunted_mansion_halloween_soundstart
+    # - delay: 00:04:00
+    # - service: script.turn_on
+      # entity_id: script.haunted_mansion_halloween_soundbox  
+
+# Turn off Haunted Mansion Show when input_boolean is flipped off
+  - id: haunted_mansion_off
+    alias: Haunted Mansion Off
+    initial_state: true
+    trigger:
+    - platform: state
+      entity_id: input_boolean.haunted_mansion
+      to: 'off'
+    action:
+    - service: script.turn_off
+      entity_id: script.haunted_mansion_lights
+    - service: script.turn_off
+      entity_id: script.loops_haunted_mansion_lights
+    - service: script.turn_off
+      entity_id: script.haunted_mansion_thunder
+    - service: script.turn_off
+      entity_id: script.loop_haunted_mansion_thunder
+    # - service: script.turn_off
+      # entity_id: script.haunted_mansion_halloween_soundstart
+    # - service: script.turn_off
+      # entity_id: script.haunted_mansion_halloween_soundbox
+    # - service: script.turn_off
+      # entity_id: script.loop_haunted_mansion_halloween_soundbox
+    - service: light.turn_on
+      entity_id: light.lumieres_rgb
+      data:
+        rgb_color: [255,255,255]
+        brightness: 120
+    - service: light.turn_off
+      target:
+        entity_id: light.lampe_halloween
+    - service: switch.turn_off
+      data:
+        entity_id: switch.pompe_a_eau
+       
+script:
+  haunted_mansion_lights:
+    icon: mdi:halloween
+    mode: queued
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: 'light.{{["lampe_cave","lampe_couloir_1","lampe_couloir_2","lampe_couloir_en_haut","lampe_cuisine","lampe_salon","lampe_lapin","lampe_bureau_2_ambilight"]|random}}'            
+      data:
+        color_name: '{{["green","red","purple","orange"]|random}}'
+        brightness_pct: '{{ (range(20, 100)|random) }}'
+    - service: light.turn_on
+      target:
+        entity_id: light.lampe_halloween
+    - service: light.turn_off
+      target:
+        entity_id: 'light.{{["lampe_cave","lampe_couloir_1","lampe_couloir_2","lampe_couloir_en_haut","lampe_cuisine","lampe_salon","lampe_lapin","lampe_bureau_2_ambilight"]|random}}'
+    - service: light.turn_on
+      target:
+        entity_id: 'light.{{["lampe_cave","lampe_couloir_1","lampe_couloir_2","lampe_couloir_en_haut","lampe_cuisine","lampe_salon","lampe_lapin","lampe_bureau_2_ambilight"]|random}}'            
+      data:
+        color_name: '{{["green","red","purple","orange"]|random}}'
+        brightness_pct: '{{ (range(20, 100)|random) }}'
+    - service: script.turn_on
+      data:
+        entity_id: script.loops_haunted_mansion_lights
+  loops_haunted_mansion_lights:
+    sequence:
+    - delay: 00:00:01
+    - service: script.turn_on
+      data:
+        entity_id: script.haunted_mansion_lights
+  
+  haunted_mansion_thunder:
+    sequence:
+    - service: 'switch.turn_{{["on","off"]|random}}'
+      data:
+        entity_id: switch.pompe_a_eau
+    - delay: 00:00:05
+    - service: switch.turn_off
+      data:
+        entity_id: switch.pompe_a_eau
+    - service: script.turn_on
+      data:
+        entity_id: script.loop_haunted_mansion_thunder
+  loop_haunted_mansion_thunder:
+    sequence:
+    - delay: '00:00:{{ (range(20, 30)|random) }}'
+    - service: script.turn_on
+      data:
+        entity_id: script.haunted_mansion_thunder
+        
+  # haunted_mansion_halloween_soundstart:
+    # sequence:
+    # - service: media_player.play_media
+      # target:
+        # entity_id: media_player.maison
+      # data:
+        # media_content_type: "music/mp3"
+        # media_content_id: media-source://media_source/media/halloween/This_is_Halloween.mp3
+
+
+  # haunted_mansion_halloween_soundbox:
+    # sequence:
+    # - service: media_player.play_media
+      # target:
+        # entity_id: 'media_player.{{["ecran_cuisine","enceinte_salon","enceinte_salle_de_bain","maison","en_bas"]|random}}'
+      # data:
+        # media_content_type: "music/mp3"
+        # media_content_id: 'media-source://media_source/media/halloween/{{["Chouette hulotte","Fantome 2","Fantome","Grognement chat","Grosse chaine","Hurlement fille","Hurlement garcon","Rire grave","Rire strident","Rire","Werewolf","Zombie"]|random}}.mp3'
+    # - service: script.turn_on
+      # data:
+        # entity_id: script.loop_haunted_mansion_halloween_soundbox
+  # loop_haunted_mansion_halloween_soundbox:
+    # sequence:
+    # - delay: '00:00:{{ (range(20, 30)|random) }}'
+    # - service: script.turn_on
+      # data:
+        # entity_id: script.haunted_mansion_halloween_soundbox
