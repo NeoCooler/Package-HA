@@ -1,0 +1,107 @@
+media_player:
+  # Use the Python ADB implementation
+  # - platform: androidtv
+    # name: Android TV
+    # host: 192.168.1.15
+    # turn_on_command: "input keyevent 224"
+    # turn_off_command: "input keyevent 223"
+  - platform: ytube_music_player
+    header_path: "/config/.storage/ytube_header.json"
+    speakers:
+      - enceinte_salon
+  - platform: group
+    name: Maison
+    entities:
+      - media_player.ecran_cuisine
+      - media_player.enceinte_salon
+      - media_player.enceinte_salle_de_bain
+  - platform: group
+    name: En Bas
+    entities:
+      - media_player.ecran_cuisine
+      - media_player.enceinte_salon
+
+input_select:
+  ytube_music_player_source:
+    name: Source
+    icon: mdi:music-box-multiple
+    options: # don't change
+    - "Playlist Radio"
+    - "Playlist"
+  ytube_music_player_speakers:
+    name: Speakers
+    icon: mdi:speaker
+    options: # don't change
+    - "loading"
+  ytube_music_player_playlist:
+    name: Playlist
+    icon: mdi:playlist-music
+    options: # don't change
+    - "loading"
+  ytube_music_player_playmode:
+    name: Playmode
+    icon: mdi:playlist-music
+    options: ## Should be empty
+    - "Shuffle"
+    - "Random"
+    - "Shuffle Random"
+    - "Direct"
+
+input_boolean:
+    ytube_music_player_playcontinuous:
+     initial: true
+     name: "Countinuous playback"
+    
+media_extractor:
+
+script:
+
+  ################################
+  # To call this using in the action section of your automation:
+  # 
+  # - service: script.local_audio
+  #   data:
+  #     volume: .5
+  #     media: /media/local_audio.mp3
+  #
+  local_audio:
+    sequence:
+    - service: media_player.turn_on
+      entity_id: media_player.ha_speaker
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.enceinte_salon
+        volume_level: >
+          {{ volume }}
+    - delay: 00:00:03
+    - service: media_player.play_media
+      entity_id: media_player.enceinte_salon
+      data:
+        media_content_type: "music"
+        media_content_id: >
+          {{ media }}
+  
+  
+  ################################
+  # To call this using in the action section of your automation:
+  # 
+  # - service: script.youtube_audio
+  #   data:
+  #     volume: .5
+  #     media: https://www.youtube.com/watch?v=pVeX4C9B1Lk
+  #
+  youtube_audio:
+    sequence:
+    - service: media_player.turn_on
+      entity_id: media_player.enceinte_salon
+    - service: media_player.volume_set
+      data_template:
+        entity_id: media_player.enceinte_salon
+        volume_level: >
+          {{ volume }}
+    - service: media_extractor.play_media
+      entity_id: media_player.enceinte_salon
+      data_template:
+        media_content_type: video/youtube
+        media_content_id: >
+          {{ media }}
